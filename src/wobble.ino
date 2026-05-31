@@ -45,13 +45,8 @@ void loop() {
     AcY = Wire.read() << 8 | Wire.read();
     AcZ = Wire.read() << 8 | Wire.read();
 
-    Serial.print("X: ");
-    Serial.print(AcX); 
-    Serial.print(" Y: ");
-    Serial.print(AcY);
-
-    Serial.print(" Z: ");
-    Serial.println(AcZ);
+    float angle = atan2((float)AcZ, (float)AcX) * 180.0 / PI; 
+    Serial.println(angle); 
 
     delay(200);
-}
+}      
