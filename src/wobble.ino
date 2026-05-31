@@ -1,3 +1,7 @@
+#include <Wire.h>
+
+const int MPU = 0x68; 
+
 const byte ENA = 5; 
 const byte IN1 = 7;
 const byte IN2 = 13;
@@ -17,14 +21,37 @@ void setup(){
 
     analogWrite(ENA, 255); 
     analogWrite(ENB, 255); 
+
+    Serial.begin(9600); 
+    Wire.begin(); 
+
+    Wire.beginTransmission(MPU); 
+    Wire.write(0x6B); 
+    Wire.write(0); 
+    Wire.endTransmission(true); 
+    Serial.println("MPU awake");
 }
 
 void loop() {
-    digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW); 
-    digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW); 
-    delay(3000); 
+    int16_t AcX, AcY, AcZ; 
 
-    digitalWrite(IN2, HIGH); digitalWrite(IN1, LOW); 
-    digitalWrite(IN4, HIGH); digitalWrite(IN3, LOW); 
-    delay(3000); 
+    Wire.beginTransmission(MPU); 
+    Wire.write(0x3B); 
+    Wire.endTransmission(false); 
+
+    Wire.requestFrom(MPU, 6, true); 
+
+    AcX = Wire.read() << 8 | Wire.read();
+    AcY = Wire.read() << 8 | Wire.read();
+    AcZ = Wire.read() << 8 | Wire.read();
+
+    Serial.print("X: ");
+    Serial.print(AcX); 
+    Serial.print(" Y: ");
+    Serial.print(AcY);
+
+    Serial.print(" Z: ");
+    Serial.println(AcZ);
+
+    delay(200);
 }
