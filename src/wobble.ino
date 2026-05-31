@@ -10,6 +10,12 @@ const byte ENB = 6;
 const byte IN3 = 4;
 const byte IN4 = 12;
 
+const int delayTime = 20; 
+float gyroAngle = 0; 
+float angle = 0; 
+
+float gyBias = -0.62; 
+
 void setup(){
     pinMode(ENA, OUTPUT); 
     pinMode(IN1, OUTPUT); 
@@ -45,8 +51,26 @@ void loop() {
     AcY = Wire.read() << 8 | Wire.read();
     AcZ = Wire.read() << 8 | Wire.read();
 
-    float angle = atan2((float)AcZ, (float)AcX) * 180.0 / PI; 
+    float accelAngle = atan2((float)AcZ, (float)AcX) * 180.0 / PI; 
+
+    int16_t GyX, GyY, GyZ; 
+    Wire.beginTransmission(MPU); 
+    Wire.write(0x43); 
+    Wire.endTransmission(false); 
+
+    Wire.requestFrom(MPU, 6, true); 
+
+    GyX = Wire.read() << 8 | Wire.read();
+    GyY = Wire.read() << 8 | Wire.read();
+    GyZ = Wire.read() << 8 | Wire.read();
+
+
+    float gyroRate = (GyY / 131.0) - gyBias ; 
+    float dt = delayTime/1000.0; 
+    gyroAngle += gyroRate * dt;
+
+    angle = 0.98 * (gyroAngle) + 0.02 * accelAngle;
     Serial.println(angle); 
 
-    delay(200);
-}      
+    delay(delayTime);
+}
