@@ -10,11 +10,38 @@ const byte ENB = 6;
 const byte IN3 = 4;
 const byte IN4 = 12;
 
-const int delayTime = 20; 
-float gyroAngle = 0; 
-float angle = 0; 
+const float GYRO_SCALE = 131.0; 
+const float ALPHA = 0.98; 
+const int LOOP_DELAY_MS = 20;  
+const float DT  = LOOP_DELAY_MS /1000.0; 
 
+float angle = 0; 
 float gyBias = -0.62; 
+
+void readAccel(int16_t &ax, int16_t &ay, int16_t &az) {
+        Wire.beginTransmission(MPU); 
+    Wire.write(0x3B); 
+    Wire.endTransmission(false); 
+
+    Wire.requestFrom(MPU, 6, true); 
+
+    ax = Wire.read() << 8 | Wire.read();
+    ay = Wire.read() << 8 | Wire.read();
+    az = Wire.read() << 8 | Wire.read();
+}
+
+
+void readGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
+    Wire.beginTransmission(MPU); 
+    Wire.write(0x43); 
+    Wire.endTransmission(false); 
+
+    Wire.requestFrom(MPU, 6, true); 
+
+    gx = Wire.read() << 8 | Wire.read();
+    gy = Wire.read() << 8 | Wire.read();
+    gz = Wire.read() << 8 | Wire.read();
+}
 
 void setup(){
     pinMode(ENA, OUTPUT); 
@@ -40,37 +67,15 @@ void setup(){
 
 void loop() {
     int16_t AcX, AcY, AcZ; 
+    int16_t GyX, GyY, GyZ; 
 
-    Wire.beginTransmission(MPU); 
-    Wire.write(0x3B); 
-    Wire.endTransmission(false); 
-
-    Wire.requestFrom(MPU, 6, true); 
-
-    AcX = Wire.read() << 8 | Wire.read();
-    AcY = Wire.read() << 8 | Wire.read();
-    AcZ = Wire.read() << 8 | Wire.read();
+    readAccel(AcX, AcY, AcZ); 
+    readGyro(GyX, GyY, GyZ); 
 
     float accelAngle = atan2((float)AcZ, (float)AcX) * 180.0 / PI; 
+    float gyroRate = (GyY / GYRO_SCALE) - gyBias ; 
+    angle = ALPHA * (angle + gyroRate * DT) + (1.0 - ALPHA) * accelAngle; 
 
-    int16_t GyX, GyY, GyZ; 
-    Wire.beginTransmission(MPU); 
-    Wire.write(0x43); 
-    Wire.endTransmission(false); 
-
-    Wire.requestFrom(MPU, 6, true); 
-
-    GyX = Wire.read() << 8 | Wire.read();
-    GyY = Wire.read() << 8 | Wire.read();
-    GyZ = Wire.read() << 8 | Wire.read();
-
-
-    float gyroRate = (GyY / 131.0) - gyBias ; 
-    float dt = delayTime/1000.0; 
-    gyroAngle += gyroRate * dt;
-
-    angle = 0.98 * (gyroAngle) + 0.02 * accelAngle;
     Serial.println(angle); 
-
-    delay(delayTime);
+    delay(LOOP_DELAY_MS); 
 }
