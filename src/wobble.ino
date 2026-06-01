@@ -16,7 +16,9 @@ const int LOOP_DELAY_MS = 20;
 const float DT  = LOOP_DELAY_MS /1000.0; 
 
 float angle = 0; 
-float gyBias = -0.62; 
+float gyBias = -0.60; 
+
+const float BALANCE_ANGLE = 3.3; 
 
 void readAccel(int16_t &ax, int16_t &ay, int16_t &az) {
         Wire.beginTransmission(MPU); 
@@ -76,6 +78,7 @@ void loop() {
     float gyroRate = (GyY / GYRO_SCALE) - gyBias ; 
     angle = ALPHA * (angle + gyroRate * DT) + (1.0 - ALPHA) * accelAngle; 
 
-    Serial.println(angle); 
+    float error = angle - BALANCE_ANGLE; 
+    Serial.println(error); 
     delay(LOOP_DELAY_MS); 
 }
