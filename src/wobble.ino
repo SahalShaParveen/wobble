@@ -20,7 +20,14 @@ float gyBias = -0.62;
 
 const float BALANCE_ANGLE = 3.3; 
 
-const int Kp = 5; 
+const int Kp = 7; 
+const float Ki = 0.2;
+
+float integral = 0;
+const float INTEGRAL_LIMIT = 100;
+
+const float Kd = 0.2;
+float lastError = 0;
 
 void readAccel(int16_t &ax, int16_t &ay, int16_t &az) {
     Wire.beginTransmission(MPU); 
@@ -51,13 +58,15 @@ void readGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
 void setMotorSpeed(int speed) {
     const int MIN_PWM = 150; 
     speed = constrain(speed, -255, 255);
-
     int pwm = 0; 
-
-    if (speed != 0){
-        pwm = MIN_PWM + (abs(speed) * (255 - MIN_PWM)) / 255;
+    
+    if (speed != 0)
+    {
+        pwm = map(abs(speed), 0, 255, MIN_PWM, 255);
     }
-    analogWrite(ENA, pwm); analogWrite(ENB, pwm);  
+
+    analogWrite(ENA, pwm);
+    analogWrite(ENB, pwm);
 
     if (speed < 0) {
         digitalWrite(IN1, HIGH);
@@ -118,8 +127,15 @@ void loop() {
 
     float error = angle - BALANCE_ANGLE; 
     Serial.println(error); 
-    delay(LOOP_DELAY_MS); 
 
-    float output = Kp * error; 
+    integral += error * DT;
+    integral = constrain(integral, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
+
+    float derivative = (error - lastError) / DT;
+    lastError = error;
+
+    float output = (Kp * error) + (Kd * derivative);
     setMotorSpeed((int) output);   
+
+    delay(LOOP_DELAY_MS); 
 }
