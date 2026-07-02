@@ -2,13 +2,13 @@
 
 const int MPU = 0x68; 
 
-const byte ENA = 5; 
-const byte IN1 = 7;
-const byte IN2 = 13;
+const byte ENA = 13; 
+const byte IN1 = 12;
+const byte IN2 = 14;
 
-const byte ENB = 6;
-const byte IN3 = 4;
-const byte IN4 = 12;
+const byte ENB = 25;
+const byte IN3 = 26;
+const byte IN4 = 27;
 
 const float GYRO_SCALE = 131.0; 
 const float ALPHA = 0.98; 
@@ -18,7 +18,7 @@ const float DT  = LOOP_DELAY_MS /1000.0;
 float angle = 0; 
 float gyBias = -0.62; 
 
-const float BALANCE_ANGLE = 3.3; 
+const float BALANCE_ANGLE = 101; 
 
 const int Kp = 7; 
 const float Ki = 0.2;
