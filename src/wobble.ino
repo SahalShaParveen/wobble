@@ -56,7 +56,7 @@ void readGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
 
 
 void setMotorSpeed(int speed) {
-    const int MIN_PWM = 150; 
+    const int MIN_PWM = 70; 
     speed = constrain(speed, -255, 255);
     int pwm = 0; 
     
