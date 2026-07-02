@@ -184,7 +184,7 @@ void loop() {
 
     float error = angle - BALANCE_ANGLE; 
 
-    Serial.print(angle); Serial.print("("); Serial.print(error);Serial.print(")"); 
+    Serial.print(angle); Serial.print("  ["); Serial.print(BALANCE_ANGLE); Serial.print("]  "); Serial.print("("); Serial.print(error);Serial.print(")"); 
     Serial.print(" | "); 
     Serial.print(Kp); Serial.print(", "); Serial.print(Kd); Serial.print(", "); Serial.print(Ki); 
     Serial.println(0);  
