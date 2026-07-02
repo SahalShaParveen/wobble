@@ -18,7 +18,7 @@ const float DT  = LOOP_DELAY_MS /1000.0;
 float angle = 0; 
 float gyBias = -0.62; 
 
-const float BALANCE_ANGLE = 101; 
+const float BALANCE_ANGLE = 112; 
 
 const int Kp = 7; 
 const float Ki = 0.2;
@@ -56,7 +56,7 @@ void readGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
 
 
 void setMotorSpeed(int speed) {
-    const int MIN_PWM = 70; 
+    const int MIN_PWM = 150; 
     speed = constrain(speed, -255, 255);
     int pwm = 0; 
     
@@ -126,6 +126,7 @@ void loop() {
     angle = ALPHA * (angle + gyroRate * DT) + (1.0 - ALPHA) * accelAngle; 
 
     float error = angle - BALANCE_ANGLE; 
+    Serial.print(angle); Serial.print(" | ");
     Serial.println(error); 
 
     integral += error * DT;
