@@ -18,7 +18,7 @@ const float DT  = LOOP_DELAY_MS /1000.0;
 float angle = 0; 
 float gyBias = -0.62; 
 
-float BALANCE_ANGLE = 112; 
+float BALANCE_ANGLE = 109; 
 
 int Kp = 7; 
 float Ki = 0.2;
@@ -26,7 +26,7 @@ float Ki = 0.2;
 float integral = 0;
 const float INTEGRAL_LIMIT = 100;
 
-float Kd = 0.2;
+float Kd = 0.5;
 float lastError = 0;
 
 String inputString = "";
@@ -59,7 +59,7 @@ void readGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
 
 
 void setMotorSpeed(int speed) {
-    const int MIN_PWM = 150; 
+    const int MIN_PWM = 100; 
     speed = constrain(speed, -255, 255);
     int pwm = 0; 
     
