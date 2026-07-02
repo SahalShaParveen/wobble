@@ -18,16 +18,19 @@ const float DT  = LOOP_DELAY_MS /1000.0;
 float angle = 0; 
 float gyBias = -0.62; 
 
-const float BALANCE_ANGLE = 112; 
+float BALANCE_ANGLE = 112; 
 
-const int Kp = 7; 
-const float Ki = 0.2;
+int Kp = 7; 
+float Ki = 0.2;
 
 float integral = 0;
 const float INTEGRAL_LIMIT = 100;
 
-const float Kd = 0.2;
+float Kd = 0.2;
 float lastError = 0;
+
+String inputString = "";
+bool stringComplete = false;
 
 void readAccel(int16_t &ax, int16_t &ay, int16_t &az) {
     Wire.beginTransmission(MPU); 
@@ -92,6 +95,41 @@ void setMotorSpeed(int speed) {
 }
 
 
+void handleSerialCommand(String cmd) {
+    cmd.trim();
+    if (cmd.length() < 2) return;
+
+    char type = cmd.charAt(0);
+    float value = cmd.substring(1).toFloat();
+
+    switch (type) {
+        case 'P':
+            Kp = value;
+            Serial.print("Kp set to "); Serial.println(Kp);
+            break;
+
+        case 'I':
+            Ki = value;
+            Serial.print("Ki set to "); Serial.println(Ki);
+            break;
+
+        case 'D':
+            Kd = value;
+            Serial.print("Kd set to "); Serial.println(Kd);
+            break;
+
+        case 'A':
+            BALANCE_ANGLE = value;
+            Serial.print("Balance angle set to "); Serial.println(BALANCE_ANGLE);
+            break;
+
+        default:
+            Serial.println("Unknown command");
+            break;
+    }
+}
+
+
 void setup(){
     pinMode(ENA, OUTPUT); 
     pinMode(IN1, OUTPUT); 
@@ -104,7 +142,7 @@ void setup(){
     analogWrite(ENA, 255); 
     analogWrite(ENB, 255); 
 
-    Serial.begin(9600); 
+    Serial.begin(115200); 
     Wire.begin(); 
 
     Wire.beginTransmission(MPU); 
@@ -114,7 +152,26 @@ void setup(){
     Serial.println("MPU awake");
 }
 
+
 void loop() {
+    while (Serial.available()) {
+        char inChar = (char)Serial.read();
+
+        if (inChar == '\n' || inChar == '\r') {
+            if (inputString.length() > 0) {
+                stringComplete = true;
+            }
+        } else {
+            inputString += inChar;
+        }
+    }
+
+    if (stringComplete) {
+        handleSerialCommand(inputString);
+        inputString = "";
+        stringComplete = false;
+    }
+
     int16_t AcX, AcY, AcZ; 
     int16_t GyX, GyY, GyZ; 
 
@@ -126,8 +183,11 @@ void loop() {
     angle = ALPHA * (angle + gyroRate * DT) + (1.0 - ALPHA) * accelAngle; 
 
     float error = angle - BALANCE_ANGLE; 
-    Serial.print(angle); Serial.print(" | ");
-    Serial.println(error); 
+
+    Serial.print(angle); Serial.print("("); Serial.print(error);Serial.print(")"); 
+    Serial.print(" | "); 
+    Serial.print(Kp); Serial.print(", "); Serial.print(Kd); Serial.print(", "); Serial.print(Ki); 
+    Serial.println(0);  
 
     integral += error * DT;
     integral = constrain(integral, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
@@ -135,7 +195,7 @@ void loop() {
     float derivative = (error - lastError) / DT;
     lastError = error;
 
-    float output = (Kp * error) + (Kd * derivative);
+    float output = (Kp * error) + (Ki * integral) + (Kd * derivative);
     setMotorSpeed((int) output);   
 
     delay(LOOP_DELAY_MS); 
